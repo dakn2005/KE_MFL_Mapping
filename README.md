@@ -1,7 +1,7 @@
 # KE Hospital Mapping 
 
 ## Intro
-Inspired by [KENYA MASTER HEALTH FACILITY LIST](http://kmhfl.health.go.ke/), the project seeks to enhance key functionalities with realtime mapping capabilities
+Inspired by [KENYA MASTER HEALTH FACILITY LIST](http://kmhfl.health.go.ke/), the project seeks to enhance key functionalities with real-time mapping
 
 ## About Project
 The projects is open source and makes use of open source tooling. 
