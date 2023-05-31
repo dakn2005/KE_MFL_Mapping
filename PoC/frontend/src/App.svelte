@@ -1,47 +1,59 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import { onMount } from "svelte";
+  import {writable} from 'svelte/store';
+
+  import * as L from "leaflet";
+  import '../node_modules/leaflet/dist/leaflet.css';
+
+  // import svelteLogo from "./assets/svelte.svg";
+  // import viteLogo from "/vite.svg";
+
+  let map = null;
+  let geo = writable([]);
+
+  onMount(() => {
+    getLocation();
+  });
+
+  $: if($geo.length > 0){
+    // console.log($geo)
+    map = L.map('map').setView($geo, 13); //[51.505, -0.09]
+
+    let marker = L.marker($geo).addTo(map);
+
+    marker.bindPopup("<b>Hello world!</b><br>I am a popup.");
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 20,
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+
+  }
+
+  function getLocation() {
+    const successCallback = (position) => {
+      let {latitude, longitude} = position.coords;
+      $geo = [latitude, longitude]
+    };
+
+    const errorCallback = (error) => {
+      console.error(error);
+      alert("Please grant browser permissions for geolocation, and reload");
+    };
+
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+  }
 </script>
 
-<main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
+<main style="height: 100vh; width: 100%;">
+  <div id="map" style="height:100%;width:100%"></div>
 </main>
 
-<style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
-</style>
+<svelte:head>
+  <!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" /> -->
+
+  <!-- <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script> -->
+
+  <!-- <script src="js/leaflet-providers.js"></script> -->
+</svelte:head>
