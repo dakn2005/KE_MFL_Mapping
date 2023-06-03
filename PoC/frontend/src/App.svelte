@@ -10,23 +10,75 @@
 
   let map = null;
   let geo = writable([]);
+  let facs = writable([]);
 
   onMount(() => {
     getLocation();
   });
 
   $: if ($geo.length > 0) {
-    // console.log($geo)
-    map = L.map("map").setView($geo, 13); //[51.505, -0.09]
+    let latlong = $geo.join(",");
 
-    let marker = L.marker($geo).addTo(map);
-
-    marker.bindPopup("<b>Hello world!</b><br>I am a popup.");
+    map = L.map("map").setView($geo, 13);
+    let userIcon = L.icon({
+      iconUrl: "./user.png",
+      iconSize: [45, 45], // size of the icon
+      // shadowSize: [50, 64], // size of the shadow
+      iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
+      popupAnchor: [-3, -76], // point from which the popup should open relative to the iconAnchor
+    });
+    
+    L.marker($geo, { icon: userIcon }).addTo(map);
 
     L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png", {
       maxZoom: 20,
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
+
+    fetch(`http://127.0.0.1:5000/init/${latlong}`, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json;charset=UTF-8",
+        "Access-Control-Allow-Origin": "*",
+      },
+    })
+      .then((r) => r.json())
+      .then((r) => {
+        $facs = JSON.parse(r.data);
+      });
+  }
+
+  $: if ($facs.length > 0) {
+    $facs.forEach((f) => {
+      
+      let returnHIcon = ownerType =>{
+        let theicon = './hosi-public.png'
+
+        if (ownerType == 'Private Practice') theicon='./hosi-private.png'
+        if (ownerType == 'Faith Based Organization') theicon='./hosi-fbo.png'
+
+        return theicon;
+      }
+
+      let hosiIcon = L.icon({
+        iconUrl: returnHIcon(f.owner_type_name),
+        iconSize: [32, 32], // size of the icon
+        // shadowSize: [50, 64], // size of the shadow
+        iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
+        popupAnchor: [-3, -76], // point from which the popup should open relative to the iconAnchor
+      });
+
+
+      let marker = L.marker([f.lat, f.long], { icon: hosiIcon }).addTo(map);
+      
+      let html = `<ul>
+        <li>${f.name}</li>
+        <li>${f.owner_type_name}</li>
+        <li><b>approx distance ${f.distance.toFixed(2)} km</b></li>
+        <li>${f.service_names}</li>
+        `
+      marker.bindPopup(html);
+    });
   }
 
   // TODO: wierd, getting previous position from navigator.geolocation !important
@@ -35,7 +87,7 @@
   function getLocation() {
     const successCallback = (position) => {
       let { latitude, longitude } = position.coords;
-      console.info(latitude, longitude)
+      console.info(latitude, longitude);
       $geo = [latitude, longitude];
     };
 
@@ -54,7 +106,8 @@
   }
 </script>
 
-<main class="w-full h-screen bg-gray-200 flex justify-center items-center">
+
+<div class="w-full bg-gray-200 flex justify-center items-center border-2 border-red-600">
   <!-- <div id="map" style="height: 80vh; width: 100%;"></div> -->
 
   <div class="bg-gray-400 w-full h-screen relative z-0">
@@ -78,4 +131,4 @@
         </div>
       </div> -->
   </div>
-</main>
+</div>
