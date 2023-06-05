@@ -14,3 +14,12 @@ https://stackoverflow.com/questions/65749715/div-on-top-of-another-with-tailwind
 - flask and postgres
 https://www.digitalocean.com/community/tutorials/how-to-use-a-postgresql-database-in-a-flask-application
 https://flask.palletsprojects.com/en/2.3.x/patterns/sqlalchemy/
+
+!Important - geolocation runs under https
+- chrome browser geolocation api issue
+Chrome-based browsers have issues with geolocation api (wtf!)
+https://support.google.com/chrome/thread/15257607/geolocation-accuracy-started-getting-worse?hl=en
+
+||=> firefox watchPosition refreshing every second!
+=> seems there's an issue on macbooks and location - tested geolocation on various browsers and getting inaccurate results
+=> Issues connecting via mobile network?

@@ -41,7 +41,7 @@ def init_load(coords):
 
     tree2 = BallTree(np.deg2rad(df2[['lat', 'long']].values.astype(float)), metric='minkowski')
 
-    distances2, indices2 = tree2.query(np.deg2rad(np.c_[lat_q, long_q]), k = 15)
+    distances2, indices2 = tree2.query(np.deg2rad(np.c_[lat_q, long_q]), k = 100)
 
     r_km = 6371 # multiplier to convert to km (from unit distance)
 
@@ -51,7 +51,7 @@ def init_load(coords):
             df2['distance'][index] = d[i] * r_km
             # print("\n\t{} with distance of approx {} kms".format(df2['name'][index], d[i] * r_km) )
 
-    print(indices2[0])
+    # print(indices2[0])
 
     outDf = df2.iloc[indices2[0]]
 
