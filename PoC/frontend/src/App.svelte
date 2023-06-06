@@ -6,31 +6,31 @@
   import "../node_modules/leaflet/dist/leaflet.css";
 
   import MapToolbar from "./MapToolbar.svelte";
+  import Form from "./SearchForm/Form.svelte";
 
   // import svelteLogo from "./assets/svelte.svg";
   // import viteLogo from "/vite.svg";
 
   let map = null;
   let geo = writable([]);
-  let facs = writable([]);
+  let allFacilities = writable([]);
   let overlay = false;
 
   onMount(() => {
     getLocation();
   });
 
-  $: if ($geo.length > 0) {
-    let latlong = $geo.join(",");
-
+  function createMap(geo) {
     // reset map container
-    if (map){
-      map.off();
+    if (map) {
+      // map.off();
       map.remove();
       document.getElementById("map").innerHTML = "";
-      document.getElementById('map').innerHTML = '<span class="text-5xl">Loading Maps...</span>';
+      document.getElementById("map").innerHTML =
+        '<span class="text-5xl">Loading Maps...</span>';
     }
 
-    map = L.map("map").setView($geo, 13);
+    map = L.map("map").setView(geo, 13);
 
     let userIcon = L.icon({
       iconUrl: "./user.png",
@@ -40,11 +40,12 @@
       popupAnchor: [-3, -76], // point from which the popup should open relative to the iconAnchor
     });
 
-    L.marker($geo, { icon: userIcon }).addTo(map);
+    L.marker(geo, { icon: userIcon }).addTo(map);
 
     L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png", {
       maxZoom: 20,
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution:
+        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
     let toolbar = L.control({ position: "topright" });
@@ -63,22 +64,13 @@
     };
 
     toolbar.addTo(map);
-
-    fetch(`http://127.0.0.1:5000/init/${latlong}`, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json;charset=UTF-8",
-        "Access-Control-Allow-Origin": "*",
-      },
-    })
-      .then((r) => r.json())
-      .then((r) => {
-        $facs = JSON.parse(r.data);
-      });
   }
 
-  $: if ($facs.length > 0) {
-    $facs.forEach((f) => {
+  function mapFacilities(facArr) {
+    createMap($geo);
+    
+    facArr.forEach((f) => {
+
       let returnHIcon = (ownerType) => {
         let theicon = "./hosi-public.png";
 
@@ -108,13 +100,33 @@
     });
   }
 
+  $: if ($allFacilities.length > 0) {
+    console.log("All Facs...", $allFacilities.length);
+    mapFacilities([...$allFacilities]);
+  }
+
   // TODO: weird, getting previous position from navigator.geolocation !important
   // Different browsers render location differently e.g. chrome vs edge
   function getLocation() {
-    const successCallback = (position) => {
+    const successCallback = async (position) => {
       let { latitude, longitude } = position.coords;
-      console.info("lat: ",latitude, "long: ", longitude);
+      console.info("lat: ", latitude, "long: ", longitude);
       $geo = [latitude, longitude];
+      let latlong = $geo.join(",");
+
+      fetch(`http://127.0.0.1:5000/init/${latlong}`, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json;charset=UTF-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      })
+        .then((r) => r.json())
+        .then((r) => {
+          $allFacilities = JSON.parse(r.data);
+          // createMap($geo);
+        });
+
     };
 
     const errorCallback = (error) => {
@@ -127,11 +139,15 @@
       maximumAge: 0,
     };
 
-    navigator.geolocation.watchPosition(successCallback, errorCallback, options);
+    navigator.geolocation.getCurrentPosition(
+      successCallback,
+      errorCallback,
+      options
+    );
   }
 
   function showError(error) {
-    let msg='';
+    let msg = "";
 
     switch (error.code) {
       case error.PERMISSION_DENIED:
@@ -156,18 +172,22 @@
   <!-- <div id="map" style="height: 80vh; width: 100%;"></div> -->
 
   <div class="bg-gray-400 w-full h-screen relative z-0">
-
     <!-- map -->
     <div id="map" style="height: 100vh; width: 100%; z-index: 0;">
       <span class="text-5xl">Loading Maps...</span>
     </div>
 
     <!-- overlay -->
-    <div class="{overlay ? 'flex' : 'hidden'} bg-sky-50 bg-opacity-40 absolute inset-0 z-10 border-2 border-red-600">
+    <div
+      class="{overlay
+        ? 'flex'
+        : 'hidden'} bg-sky-50 bg-opacity-40 absolute inset-0 z-10"
+    >
       <!-- <div class="flex flex-col w-full"> -->
 
-      <div class="min-h-fit border-4 border-blue-500">
-        <p class="text-2xl font-bold">This should be on top of the map</p>
+      <div class="min-h-fit m-4 md:mt-4 md:ml-4 w-full md:w-1/5">
+        <!-- <p class="text-2xl font-bold">This should be on top of the map</p> -->
+        <Form bind:overlay {mapFacilities} allFacilities={$allFacilities} />
       </div>
       <!-- </div> -->
     </div>
