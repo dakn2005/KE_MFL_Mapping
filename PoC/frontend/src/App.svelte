@@ -15,6 +15,7 @@
   let geo = writable([]);
   let allFacilities = writable([]);
   let overlay = false;
+  let services = writable([]), service_categories = writable([])
 
   onMount(() => {
     getLocation();
@@ -94,14 +95,14 @@
         <li>${f.name}</li>
         <li>${f.owner_type_name}</li>
         <li><b>Approx distance: ${f.distance.toFixed(2)} km</b></li>
-        <li>Services: ${f.service_names}</li>
         `;
+        // <li>Services: ${console.log(f.service_names)}</li>
       marker.bindPopup(html);
     });
   }
 
   $: if ($allFacilities.length > 0) {
-    console.log("All Facs...", $allFacilities.length);
+    // console.log("All Facs...", $allFacilities.length);
     mapFacilities([...$allFacilities]);
   }
 
@@ -110,7 +111,7 @@
   function getLocation() {
     const successCallback = async (position) => {
       let { latitude, longitude } = position.coords;
-      console.info("lat: ", latitude, "long: ", longitude);
+      // console.info("lat: ", latitude, "long: ", longitude);
       $geo = [latitude, longitude];
       let latlong = $geo.join(",");
 
@@ -125,6 +126,8 @@
         .then((r) => {
           $allFacilities = JSON.parse(r.data);
           // createMap($geo);
+          $services = JSON.parse(r.services)
+          $service_categories = JSON.parse(r.service_categories)
         });
 
     };
@@ -168,26 +171,35 @@
   }
 </script>
 
+<!-- <div id="map2" style="min-height: 50px;">test</div> -->
+
 <div class="w-full bg-gray-200 flex justify-center items-center">
-  <!-- <div id="map" style="height: 80vh; width: 100%;"></div> -->
 
   <div class="bg-gray-400 w-full h-screen relative z-0">
     <!-- map -->
     <div id="map" style="height: 100vh; width: 100%; z-index: 0;">
-      <span class="text-5xl">Loading Maps...</span>
+      <span class="text-4xl">
+        Search for nearest facility
+        <br/>
+        Loading Maps...
+      </span>
     </div>
 
     <!-- overlay -->
     <div
-      class="{overlay
-        ? 'flex'
-        : 'hidden'} bg-sky-50 bg-opacity-40 absolute inset-0 z-10"
-    >
+      class="{overlay ? 'flex' : 'hidden'} bg-slate-300 bg-opacity-40 absolute inset-0 z-10">
       <!-- <div class="flex flex-col w-full"> -->
 
-      <div class="min-h-fit m-4 md:mt-4 md:ml-4 w-full md:w-1/5">
+      <div class="min-h-fit m-4 md:mt-4 md:ml-4 w-full md:w-1/3">
         <!-- <p class="text-2xl font-bold">This should be on top of the map</p> -->
-        <Form bind:overlay {mapFacilities} allFacilities={$allFacilities} />
+
+        <Form 
+          bind:overlay 
+          {mapFacilities} 
+          allFacilities={$allFacilities} 
+          services={$services}
+          service_categories={$service_categories}
+        />
       </div>
       <!-- </div> -->
     </div>

@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 cors = CORS(app)    
-engine = create_engine("postgresql+psycopg2://postgres:''@localhost:5432/kmfl")
+engine = create_engine("postgresql+psycopg2://postgres:123@Team@localhost:5432/kmfl")
 
 @app.route("/")
 def hello_world():
@@ -28,18 +28,18 @@ def init_load(coords):
     long_q = float(coordArr[1]) #37.02479170999999
 
 
-    df2 = pd.read_sql("""select 
-        name, officialname, keph_level_name, facility_type_name, county_name, 
+    dfFacilities = pd.read_sql("""select 
+        id, name, officialname, keph_level_name, facility_type_name, county_name, 
         sub_county_name, owner_type_name, admission_status_name, 
         operation_status_name, 
         open_whole_day, open_public_holidays, open_weekends, open_late_night,
-        service_names,
+        service_names, categories,
         lat,long, 
         '' as distance 
         from tbl_kmfl where lat is not null""", con=engine)
     
 
-    tree2 = BallTree(np.deg2rad(df2[['lat', 'long']].values.astype(float)), metric='minkowski')
+    tree2 = BallTree(np.deg2rad(dfFacilities[['lat', 'long']].values.astype(float)), metric='haversine') #minkowski
 
     distances2, indices2 = tree2.query(np.deg2rad(np.c_[lat_q, long_q]), k = 100)
 
@@ -48,15 +48,21 @@ def init_load(coords):
     for d, ind in zip(distances2, indices2):
         # print(d, ind)
         for i,index in enumerate(ind):
-            df2['distance'][index] = d[i] * r_km
+            dfFacilities['distance'][index] = d[i] * r_km
             # print("\n\t{} with distance of approx {} kms".format(df2['name'][index], d[i] * r_km) )
 
     # print(indices2[0])
 
-    outDf = df2.iloc[indices2[0]]
+    outDf = dfFacilities.iloc[indices2[0]]
+
+    #load services
+    dfServices = pd.read_sql("select * from service", con=engine)
+
+    #load service categories
+    dfCategories = pd.read_sql("select * from service_category", con=engine)
 
     return {
-        "message": "no savings",
-        # "geo": [lat_q, long_q],
-        "data": outDf.to_json(orient="records")
+        "data": outDf.to_json(orient="records"),
+        "services": dfServices.to_json(orient="records"),
+        "service_categories": dfCategories.to_json(orient="records")
     }
