@@ -1,3 +1,12 @@
+- Pandas conn eng
+https://stackoverflow.com/questions/38332787/pandas-to-sql-to-sqlite-returns-engine-object-has-no-attribute-cursor
+
+- uwsgi 
+https://www.digitalocean.com/community/tutorialshow-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-22-04#step-5-configuring-nginx-to-proxy-requests
+
+https://www.rosehosting.com/blog/how-to-deploy-flask-application-with-nginx-and-gunicorn-on-ubuntu-20-04/
+
+
 - Leaftlet JS example
 https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.59.1
 
