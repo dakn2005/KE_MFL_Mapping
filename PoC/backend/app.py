@@ -13,10 +13,12 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 cors = CORS(app)    
 engine = create_engine("postgresql+psycopg2://postgres:123@Team@localhost:5432/kmfl")
+#https://stackoverflow.com/questions/38332787/pandas-to-sql-to-sqlite-returns-engine-object-has-no-attribute-cursor
+engine = engine.raw_connection() 
 
 @app.route("/")
 def hello_world():
-    return "<p>Hello, World!</p>"
+    return "<p>Hello, World, test!</p>"
 
 
 @app.route("/init/<coords>")
